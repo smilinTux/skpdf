@@ -6,7 +6,7 @@ requires = ["setuptools>=68.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "skpdf"
+name = "smilin-pdf"
 version = "0.1.0"
 description = "SKPDF - PDF field extraction and auto-fill from JSON profiles"
 readme = "README.md"
