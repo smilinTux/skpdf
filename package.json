@@ -1,0 +1,28 @@
+{
+  "name": "@smilintux/skpdf",
+  "version": "0.1.0",
+  "description": "SKPDF - PDF field extraction and auto-fill from JSON profiles.",
+  "main": "index.js",
+  "types": "index.d.ts",
+  "bin": {
+    "skpdf-js": "bin/cli.js"
+  },
+  "keywords": [
+    "skpdf",
+    "pdf",
+    "form-filler",
+    "acroform",
+    "field-extraction",
+    "auto-fill"
+  ],
+  "author": "smilinTux <chefboyrdave2.1@gmail.com>",
+  "license": "GPL-3.0-or-later",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/smilinTux/skpdf.git"
+  },
+  "homepage": "https://github.com/smilinTux/skpdf",
+  "bugs": {
+    "url": "https://github.com/smilinTux/skpdf/issues"
+  }
+}

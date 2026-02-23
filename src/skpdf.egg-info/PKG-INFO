@@ -1,3 +1,38 @@
+Metadata-Version: 2.4
+Name: skpdf
+Version: 0.1.0
+Summary: SKPDF - PDF field extraction and auto-fill from JSON profiles
+Author-email: smilinTux <chefboyrdave2.1@gmail.com>
+License-Expression: GPL-3.0-or-later
+Project-URL: Homepage, https://github.com/smilinTux/skpdf
+Project-URL: Repository, https://github.com/smilinTux/skpdf
+Project-URL: Issues, https://github.com/smilinTux/skpdf/issues
+Keywords: pdf,form-filler,acroform,field-extraction,auto-fill,capauth,openclaw
+Classifier: Development Status :: 3 - Alpha
+Classifier: Environment :: Console
+Classifier: Intended Audience :: End Users/Desktop
+Classifier: Operating System :: OS Independent
+Classifier: Programming Language :: Python :: 3
+Classifier: Programming Language :: Python :: 3.10
+Classifier: Programming Language :: Python :: 3.11
+Classifier: Programming Language :: Python :: 3.12
+Classifier: Programming Language :: Python :: 3.13
+Classifier: Topic :: Office/Business
+Classifier: Topic :: Utilities
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+License-File: LICENSE
+Requires-Dist: click<9.0.0,>=8.1.0
+Requires-Dist: rich<14.0.0,>=13.7.0
+Requires-Dist: pypdf<5.0.0,>=4.0.0
+Requires-Dist: pydantic<3.0.0,>=2.5.0
+Provides-Extra: dev
+Requires-Dist: pytest<9.0.0,>=8.0.0; extra == "dev"
+Requires-Dist: pytest-cov<5.0.0,>=4.1.0; extra == "dev"
+Requires-Dist: black<25.0.0,>=24.1.0; extra == "dev"
+Requires-Dist: ruff<1.0.0,>=0.2.0; extra == "dev"
+Dynamic: license-file
+
 # SKPDF — AI-Powered PDF Form Filler
 
 > **PDFs are the enemy. Your AI should handle them.**

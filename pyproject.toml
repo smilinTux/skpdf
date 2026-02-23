@@ -1,0 +1,84 @@
+# SKPDF - AI-powered PDF form filler
+# pyproject.toml - Project Configuration
+
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "skpdf"
+version = "0.1.0"
+description = "SKPDF - PDF field extraction and auto-fill from JSON profiles"
+readme = "README.md"
+license = "GPL-3.0-or-later"
+requires-python = ">=3.10"
+authors = [
+    {name = "smilinTux", email = "chefboyrdave2.1@gmail.com"}
+]
+keywords = [
+    "pdf",
+    "form-filler",
+    "acroform",
+    "field-extraction",
+    "auto-fill",
+    "capauth",
+    "openclaw"
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business",
+    "Topic :: Utilities",
+]
+
+dependencies = [
+    "click>=8.1.0,<9.0.0",
+    "rich>=13.7.0,<14.0.0",
+    "pypdf>=4.0.0,<5.0.0",
+    "pydantic>=2.5.0,<3.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0,<9.0.0",
+    "pytest-cov>=4.1.0,<5.0.0",
+    "black>=24.1.0,<25.0.0",
+    "ruff>=0.2.0,<1.0.0",
+]
+
+[project.scripts]
+skpdf = "skpdf.cli:cli"
+
+[project.urls]
+Homepage = "https://github.com/smilinTux/skpdf"
+Repository = "https://github.com/smilinTux/skpdf"
+Issues = "https://github.com/smilinTux/skpdf/issues"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 88
+target-version = ["py310", "py311", "py312"]
+
+[tool.ruff]
+line-length = 88
+target-version = "py310"
+select = ["E", "W", "F", "I", "B", "C4", "UP"]
+ignore = ["E501", "B008", "C901"]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+addopts = "-ra -q --strict-markers"
+testpaths = ["tests"]
+pythonpath = ["src"]
