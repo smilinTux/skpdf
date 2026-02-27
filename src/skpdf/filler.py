@@ -94,10 +94,11 @@ def fill_pdf(
     for field_name in raw_fields:
         norm = _normalize_key(field_name)
         if norm in mapping:
-            writer.update_page_form_field_values(
-                writer.pages[0],
-                {field_name: mapping[norm]},
-            )
+            for page in writer.pages:
+                writer.update_page_form_field_values(
+                    page,
+                    {field_name: mapping[norm]},
+                )
             filled += 1
         else:
             skipped += 1
