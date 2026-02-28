@@ -7,7 +7,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "smilin-pdf"
-version = "0.1.0"
+version = "0.2.0"
 description = "SKPDF - PDF field extraction and auto-fill from JSON profiles"
 readme = "README.md"
 license = "GPL-3.0-or-later"
@@ -43,6 +43,7 @@ dependencies = [
     "rich>=13.7.0,<14.0.0",
     "pypdf>=4.0.0,<5.0.0",
     "pydantic>=2.5.0,<3.0.0",
+    "pyyaml>=6.0.0,<7.0.0",
 ]
 
 [project.optional-dependencies]
@@ -52,6 +53,9 @@ dev = [
     "black>=24.1.0,<25.0.0",
     "ruff>=0.2.0,<1.0.0",
 ]
+nextcloud = ["requests>=2.31.0,<3.0.0"]
+gdrive = ["google-auth>=2.0.0", "google-api-python-client>=2.0.0"]
+dropbox = ["dropbox>=11.0.0"]
 
 [project.scripts]
 skpdf = "skpdf.cli:cli"
