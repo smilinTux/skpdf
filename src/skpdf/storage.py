@@ -331,11 +331,44 @@ class GoogleDriveBackend(StorageBackend):
         self._ensure_folder_chain(path + "/placeholder")
 
     def exists(self, path: str) -> bool:
-        # Drive doesn't map well to paths; return False
-        return False
+        try:
+            service = self._get_service()
+            parts = list(Path(path).parent.parts)
+            parent_id = self._root_folder_id
+
+            for folder_name in parts:
+                query = (
+                    f"name='{folder_name}' and '{parent_id}' in parents "
+                    f"and mimeType='application/vnd.google-apps.folder' and trashed=false"
+                )
+                results = service.files().list(q=query, fields="files(id)").execute()
+                files = results.get("files", [])
+                if not files:
+                    return False
+                parent_id = files[0]["id"]
+
+            file_name = Path(path).name
+            query = f"name='{file_name}' and '{parent_id}' in parents and trashed=false"
+            results = service.files().list(q=query, fields="files(id)").execute()
+            return bool(results.get("files"))
+        except Exception:
+            return False
 
     def _write_metadata(self, content: str, path: str) -> str:
-        return f"gdrive:metadata"
+        from googleapiclient.http import MediaInMemoryUpload
+
+        service = self._get_service()
+        folder_id = self._ensure_folder_chain(path)
+        file_name = Path(path).name
+        media = MediaInMemoryUpload(content.encode("utf-8"), mimetype="text/yaml")
+        meta_body = {
+            "name": file_name,
+            "parents": [folder_id],
+        }
+        result = (
+            service.files().create(body=meta_body, media_body=media, fields="id").execute()
+        )
+        return f"gdrive:{result['id']}"
 
 
 class DropboxBackend(StorageBackend):

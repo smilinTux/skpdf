@@ -27,6 +27,7 @@ from .storage import (
     get_backend,
 )
 from .gtd_filer import GTDFiler
+from .skseal_bridge import SignAndFileResult, fill_sign_and_file, sign_and_file
 
 __all__ = [
     "Category",
@@ -45,5 +46,8 @@ __all__ = [
     "StorageBackend",
     "StorageError",
     "get_backend",
+    "SignAndFileResult",
+    "fill_sign_and_file",
+    "sign_and_file",
     "__version__",
 ]
