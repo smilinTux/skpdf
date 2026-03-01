@@ -82,8 +82,7 @@ def fill_pdf(
     output_path = Path(output_path)
 
     reader = PdfReader(pdf_path)
-    writer = PdfWriter()
-    writer.append_pages_from_reader(reader)
+    writer = PdfWriter(clone_from=reader)
 
     raw_fields = reader.get_fields() or {}
     mapping = _build_mapping(profile)
