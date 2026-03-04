@@ -1,0 +1,26 @@
+name: skpdf
+version: "0.1.0"
+description: >
+  Sovereign PDF operations — extract fields, fill forms, attach to GTD
+  system via Nextcloud, and store with skseal integration. Designed for
+  PMA document workflows and contract management.
+
+author:
+  name: smilinTux.org
+  email: hello@smilintux.org
+
+tags: [pdf, forms, gtd, documents, nextcloud, extract]
+category: tools
+
+tools:
+  - name: pdf_extract
+    description: Extract text and fields from a PDF
+    entrypoint: skpdf.skill:extract
+
+  - name: pdf_fill
+    description: Fill a PDF form with provided data
+    entrypoint: skpdf.skill:fill
+
+  - name: pdf_file
+    description: File a PDF into the GTD system
+    entrypoint: skpdf.skill:file_pdf

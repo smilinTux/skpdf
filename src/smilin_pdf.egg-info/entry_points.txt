@@ -1,0 +1,2 @@
+[console_scripts]
+skpdf = skpdf.cli:cli
