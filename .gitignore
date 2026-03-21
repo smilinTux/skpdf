@@ -1,0 +1,18 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+*.egg
+dist/
+build/
+.eggs/
+
+# Test artifacts
+acro_form.pdf
+chef_profile.json
+filled_form*.pdf
+test_form.pdf
+
+# Node
+package-lock.json
+node_modules/
