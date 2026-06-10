@@ -1,518 +1,179 @@
-# SKPDF — AI-Powered PDF Form Filler
+# skpdf — Sovereign PDF Form Filler 🐧
 
-> **PDFs are the enemy. Your AI should handle them.**
->
-> *Send a 40-page form. Get it back filled out. File it where it belongs. Move on with your life.*
+> **Send a PDF form. Get it back filled from a profile you control. File it where it belongs.**
+> Extract every field, auto-fill from a JSON profile, optionally PGP-sign it, and
+> file it into a GTD-organized library on your own storage — local, Nextcloud,
+> Drive, or Dropbox. No SaaS, no upload-to-someone-else's-cloud.
 
-[![License: GPL-3.0](https://img.shields.io/badge/License-GPL%203.0-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![Auth: CapAuth](https://img.shields.io/badge/Auth-CapAuth-green)](https://github.com/smilinTux/capauth)
-[![Chat: SKChat](https://img.shields.io/badge/Chat-SKChat%20Plugin-purple)](https://github.com/smilinTux/skchat)
-
----
-
-## The Problem
-
-You get a 40-page PDF form. Medical intake. Tax documents. Government
-applications. Insurance claims. Lease agreements.
-
-Every single time:
-
-- **You re-type the same PII** — name, DOB, SSN, address, phone, email
-- **You hunt for info** — policy numbers, account numbers, dates
-- **You miss fields** — page 37, tiny checkbox, "initial here"
-- **You can't find it later** — it's in Downloads. Or Desktop. Or that
-  email from three months ago
-- **Your AI can't help** — because it doesn't know your data and can't
-  touch PDFs
-
-## The Solution
-
-**SKPDF** is your AI form-filling assistant. Send it a PDF, and it:
-
-1. **Extracts every field** from the PDF form
-2. **Auto-fills from your CapAuth profile** — name, DOB, address, SSN,
-   insurance, medical, financial — everything your AI advocate already knows
-3. **Asks only what's missing** — "What's the claim number?" "Which doctor?"
-4. **Returns the completed PDF** — signed, dated, ready to submit
-5. **Files it using GTD** — to the right folder, tagged, searchable, done
-
-Your AI fills out your paperwork. That's the pitch.
+skpdf is the **PDF document capability** of the [SKWorld](https://skworld.io)
+sovereign agent ecosystem. It is a small, honest tool: a `pypdf`-based AcroForm
+engine wrapped in a `click` CLI and a clean Python API, with a GTD filer and
+pluggable storage backends. Your data is a JSON profile you own (today, exported
+from a CapAuth profile); the filled PDF lands on storage you own.
 
 ---
 
-## Core Features
+## The 60-second version
 
-### Intelligent Field Extraction
-
-- **Detect all form fields** — text boxes, checkboxes, radio buttons,
-  dropdowns, signature blocks, date fields
-- **Understand field context** — "Patient Name" maps to your name,
-  "Date of Birth" maps to your DOB, not random text
-- **Handle non-interactive PDFs** — even scanned paper forms get OCR'd
-  and field positions detected
-- **Multi-page forms** — 1 page or 100, doesn't matter
-
-### CapAuth Profile Auto-Fill
-
-Your CapAuth sovereign profile is your single source of truth:
-
-```yaml
-# What SKPDF pulls from your profile:
-identity:
-  full_name: "Dave KeK"
-  preferred_name: "Chef"
-  date_of_birth: "1985-03-15"
-  ssn_encrypted: "***"          # Decrypted only when needed, PGP-gated
-  drivers_license: "FL-K123456"
-  passport: "US-987654321"
-
-contact:
-  email: "chef@smilintux.org"
-  phone: "+1-555-0123"
-  address:
-    street: "123 Sovereign Lane"
-    city: "Palm Beach"
-    state: "FL"
-    zip: "33480"
-    country: "US"
-
-medical:
-  insurance_provider: "Blue Cross"
-  policy_number: "BC-123456"
-  group_number: "GRP-789"
-  primary_physician: "Dr. Smith"
-  allergies: ["penicillin"]
-  medications: ["none"]
-  blood_type: "O+"
-
-financial:
-  bank_name: "First National"
-  routing_number: "123456789"
-  account_number_encrypted: "***"
-  employer: "Self-employed"
-  employer_address: "..."
-
-vehicles:
-  - make: "Toyota"
-    model: "4Runner"
-    year: 2022
-    vin: "..."
-    plate: "FL ABC123"
-
-dependents:
-  - name: "..."
-    relationship: "spouse"
-    dob: "..."
+```mermaid
+flowchart LR
+    PDF["a blank PDF form<br/>(AcroForm fields)"] --> EX["extract<br/>(pypdf reads the fields)"]
+    PROF["your profile.json<br/>(field values)"] --> FILL
+    EX --> FILL["fill<br/>(fuzzy-match keys → write values)"]
+    FILL --> OUT["filled.pdf"]
+    OUT -.->|"optional"| SIGN["sign<br/>(skseal PGP, in-memory key)"]
+    OUT --> FILE["file<br/>(GTD categorize · rename · metadata)"]
+    SIGN --> FILE
+    FILE --> STORE["your storage<br/>(local · nextcloud · gdrive · dropbox)"]
 ```
 
-Every field that matches your profile data gets filled automatically.
-Sensitive fields (SSN, account numbers) require explicit PGP decryption
-approval from your AI advocate.
-
-### Smart Question Flow
-
-For fields that can't be auto-filled:
-
-```
-SKPDF: "I filled 87 of 93 fields from your profile. 6 remaining:"
-
-  1. Claim number: _______________
-  2. Date of incident: _______________
-  3. Description of incident: _______________
-  4. Treating physician for this visit: _______________
-  5. Preferred pharmacy: _______________
-  6. Signature date (today?): [Yes] / ___
-
-Chef: "Claim CLM-2026-0442, incident Feb 15, slipped on ice,
-       Dr. Johnson at Palm Beach Medical, CVS on Main St, yes today"
-
-SKPDF: "Done. All 93 fields filled. PDF ready for review."
-```
-
-The AI understands natural language answers and maps them to the right
-fields. No clicking through a form one field at a time.
-
-### GTD-Native Filing System
-
-Every completed PDF gets filed properly using GTD (Getting Things Done)
-principles. Because your Downloads folder is a war crime.
-
-```
-~/Documents/                         # or Nextcloud Files
-├── @Inbox/                          # New/unprocessed (GTD inbox)
-├── @Action/                         # Needs follow-up
-│   ├── Waiting-For/                 # Sent, awaiting response
-│   └── Next-Actions/               # Your next steps
-├── @Reference/                      # Filed for future reference
-│   ├── Medical/
-│   │   ├── 2026/
-│   │   │   ├── 2026-02-21_insurance-claim_blue-cross.pdf
-│   │   │   └── 2026-01-15_annual-physical_dr-smith.pdf
-│   │   └── 2025/
-│   ├── Financial/
-│   │   ├── Tax/
-│   │   ├── Banking/
-│   │   └── Insurance/
-│   ├── Legal/
-│   │   ├── Contracts/
-│   │   └── Government/
-│   ├── Housing/
-│   │   ├── Lease/
-│   │   └── Utilities/
-│   ├── Vehicle/
-│   └── Personal/
-├── @Projects/                       # Active projects with PDFs
-│   ├── house-purchase-2026/
-│   └── business-registration/
-└── @Archive/                        # Completed, rarely accessed
-```
-
-**Filing rules:**
-
-- **Auto-categorize** based on PDF content (medical form → Medical/)
-- **Date-prefix** every file: `YYYY-MM-DD_description_source.pdf`
-- **Tag with metadata** in a sidecar `.meta.yml` for search
-- **Move from @Inbox to @Reference** automatically after filing
-- **Move to @Action/Waiting-For** if you sent it somewhere
-- **AI suggests the right folder** — you confirm with one tap
-
-### Filing Destinations
-
-| Destination | Method | Status |
-|------------|--------|--------|
-| **Local filesystem** | Direct file write | Priority 1 |
-| **Nextcloud** | WebDAV upload | Priority 1 |
-| **Google Drive** | API upload | Priority 2 |
-| **Dropbox** | API upload | Priority 3 |
-| **IPFS** | Pin to network | Priority 3 |
-| **Email** | Send as attachment via SKComm | Priority 1 |
+You give it a form and a profile. It fills what it can match, reports what it
+skipped, and (if you ask) files the result into a dated, categorized GTD folder
+with a YAML metadata sidecar.
 
 ---
 
-## Architecture
-
-```
-┌─────────────────────────────────────────────────┐
-│                  SKPDF Engine                    │
-│                                                  │
-│  ┌──────────┐  ┌──────────┐  ┌──────────────┐  │
-│  │  PDF     │  │  Field   │  │  Auto-Fill   │  │
-│  │  Parser  │  │  Mapper  │  │  Engine      │  │
-│  └────┬─────┘  └────┬─────┘  └──────┬───────┘  │
-│       │              │               │           │
-│  ┌────┴──────────────┴───────────────┴────┐     │
-│  │         Question Engine                 │     │
-│  │  (asks only what's missing)            │     │
-│  └────────────────┬───────────────────────┘     │
-│                   │                              │
-│  ┌────────────────┴───────────────────────┐     │
-│  │         PDF Writer                      │     │
-│  │  (fills fields, flattens, signs)       │     │
-│  └────────────────┬───────────────────────┘     │
-│                   │                              │
-│  ┌────────────────┴───────────────────────┐     │
-│  │         GTD Filer                       │     │
-│  │  (categorize, name, store)             │     │
-│  └────────────────────────────────────────┘     │
-├─────────────────────────────────────────────────┤
-│  Integrations                                    │
-│  ┌────────┐ ┌────────┐ ┌────────┐ ┌──────────┐ │
-│  │CapAuth │ │SKChat  │ │Nextcld │ │ GDrive   │ │
-│  │Profile │ │Plugin  │ │WebDAV  │ │ API      │ │
-│  └────────┘ └────────┘ └────────┘ └──────────┘ │
-└─────────────────────────────────────────────────┘
-```
-
-### Stack
-
-| Component | Technology | License |
-|-----------|-----------|---------|
-| **PDF parsing** | pikepdf + pdfplumber | MPL-2.0 / MIT |
-| **OCR** | Tesseract + pdf2image | Apache-2.0 |
-| **Field detection** | Custom + LLM-assisted | GPL-3.0 |
-| **PDF writing** | pikepdf + reportlab | MPL-2.0 / BSD |
-| **Profile data** | CapAuth sovereign profiles | GPL-3.0 |
-| **Filing** | Local + Nextcloud WebDAV | GPL-3.0 |
-| **NLP** | Local LLM for field mapping | — |
-| **CLI** | Typer | MIT |
-| **API** | FastAPI (for SKChat plugin) | MIT |
-
----
-
-## SKChat Plugin (Modular Integration)
-
-SKPDF is a standalone tool AND a SKChat plugin. When used as a SKChat
-module, the conversation flow is natural:
-
-```
-Chef:     [sends insurance-claim.pdf]
-Lumina:   "Got it — 40-page insurance claim form. Let me fill it out."
-Lumina:   "Auto-filled 87 of 93 fields from your profile."
-Lumina:   "I need 6 more things:
-           1. Claim number?
-           2. Date of incident?
-           3. What happened?
-           4. Which doctor treated you?
-           5. Preferred pharmacy?
-           6. Sign with today's date?"
-Chef:     "CLM-2026-0442, Feb 15, slipped on ice, Dr. Johnson, CVS Main St, yes"
-Lumina:   "All done. Here's your completed form."
-          [sends insurance-claim-FILLED.pdf]
-Lumina:   "Filed to @Reference/Medical/2026/ on Nextcloud.
-           Also moved to @Action/Waiting-For since you'll submit this.
-           Reminder set for 14 days to follow up."
-Chef:     "Perfect, thanks"
-Lumina:   "Always. That's 40 pages of paperwork done in 30 seconds. 🐧"
-```
-
-### Plugin Interface
-
-```python
-from skchat.plugins import SKChatPlugin
-
-class SKPDFPlugin(SKChatPlugin):
-    """
-    SKPDF plugin for SKChat.
-
-    Activates when a PDF file is shared in conversation.
-    Automatically offers to fill forms and file completed PDFs.
-    """
-
-    name = "skpdf"
-    version = "0.1.0"
-    triggers = ["application/pdf"]
-
-    async def on_file_received(self, file: SharedFile, context: ChatContext):
-        """Triggered when a PDF is shared in chat."""
-        if not self.is_fillable_form(file):
-            return  # Not a form, just a regular PDF
-
-        fields = await self.extract_fields(file)
-        filled = await self.auto_fill(fields, context.sender_profile)
-        missing = [f for f in fields if not f.filled]
-
-        if missing:
-            await context.ask(self.format_questions(missing))
-        else:
-            await self.complete_and_file(file, fields, context)
-```
-
----
-
-## AI Advocate Integration
-
-Your AI advocate controls what data gets shared with the form:
-
-- **Auto-approve** for non-sensitive fields (name, address, email)
-- **Prompt for approval** for sensitive fields (SSN, account numbers)
-- **Warn about suspicious forms** — "This form asks for your SSN but
-  it's from an unverified source. Are you sure?"
-- **Encrypt sensitive submissions** — filled PDF gets PGP-encrypted
-  before filing if it contains sensitive data
-- **Audit trail** — log every field filled and data source used
-
-```
-Lumina: "This form needs your SSN. The source is Blue Cross
-         (verified via CapAuth). Approve SSN disclosure?"
-Chef:   "Yes"
-Lumina: "SSN filled. I've logged this disclosure in your
-         advocate audit trail."
-```
-
----
-
-## GTD Quick Reference
-
-For humans whose brains (and desktops) are a mess:
-
-| GTD Concept | SKPDF Implementation |
-|------------|---------------------|
-| **Capture** | PDF arrives → goes to @Inbox |
-| **Clarify** | AI reads it, identifies what it is |
-| **Organize** | Auto-categorize to right @Reference folder |
-| **Reflect** | AI tracks @Action items, reminds you |
-| **Engage** | You deal with it when ready, not before |
-
-### Naming Convention
-
-```
-YYYY-MM-DD_description_source.pdf
-2026-02-21_insurance-claim_blue-cross.pdf
-2026-01-15_tax-return_irs-1040.pdf
-2026-03-01_lease-agreement_palm-beach-apartments.pdf
-```
-
-### Metadata Sidecar
-
-Every filed PDF gets a `.meta.yml` next to it:
-
-```yaml
-# 2026-02-21_insurance-claim_blue-cross.pdf.meta.yml
-original_filename: "BC_Claim_Form_2026.pdf"
-filed_date: "2026-02-21T14:30:00Z"
-category: "medical"
-subcategory: "insurance"
-source: "Blue Cross Blue Shield"
-status: "waiting-for"  # GTD status
-follow_up_date: "2026-03-07"
-fields_filled: 93
-fields_auto: 87
-fields_manual: 6
-sensitive_fields: ["ssn", "policy_number"]
-filed_by: "Lumina (AI Advocate)"
-filed_to:
-  - "local:@Reference/Medical/2026/"
-  - "nextcloud:Documents/@Reference/Medical/2026/"
-tags: ["insurance", "claim", "2026", "blue-cross"]
-```
-
----
-
-## Quick Start
+## Quickstart
 
 ```bash
-# Install
-pip install skpdf
+pip install -e .                      # installs the `skpdf` CLI (entry point: skpdf.cli:cli)
 
-# Fill a PDF from the command line
-skpdf fill insurance-form.pdf
+# 1. See what fields a form has
+skpdf extract acro_form.pdf                          # pretty table
+skpdf extract acro_form.pdf --format json -o fields.json
 
-# Fill and file to Nextcloud
-skpdf fill insurance-form.pdf --file-to nextcloud
+# 2. Fill it from a JSON profile (keys → field names, fuzzy-matched)
+skpdf fill acro_form.pdf --profile chef_profile.json -o filled.pdf
 
-# Fill with a specific profile
-skpdf fill tax-return.pdf --profile ~/.capauth/profiles/chef.profile
+# 3. Fill AND file in one shot
+skpdf fill acro_form.pdf -p chef_profile.json --file-to local
 
-# Organize your existing PDF mess (GTD inbox scan)
-skpdf organize ~/Downloads/*.pdf
-
-# Use as SKChat plugin
-skchat plugin install skpdf
+# 4. File an already-filled PDF into the GTD library
+skpdf file filled.pdf --to local --category medical --status waiting-for --source "Blue Cross"
 ```
 
----
+A profile is just JSON — keys are matched to PDF field names after normalization
+(lowercase, strip spaces/`_`/`-`/`.` and common XFA prefixes like `form1[0].`):
 
-## Configuration
-
-```yaml
-# ~/.config/skpdf/config.yml
-profile:
-  capauth: "~/.capauth/profiles/chef.profile"
-  sensitive_fields:
-    require_approval: ["ssn", "account_number", "routing_number"]
-    auto_approve: ["name", "address", "email", "phone", "dob"]
-
-filing:
-  gtd_root: "~/Documents"              # Local GTD root
-  nextcloud:
-    enabled: true
-    url: "https://cloud.yourdomain.com"
-    path: "Documents"                    # Remote GTD root
-  google_drive:
-    enabled: false
-    folder_id: "..."
-
-  naming:
-    pattern: "{date}_{description}_{source}"
-    date_format: "YYYY-MM-DD"
-    lowercase: true
-    separator: "-"
-
-  auto_categorize: true
-  create_metadata: true
-  follow_up_days: 14                    # Default reminder for @Action items
-
-ocr:
-  engine: "tesseract"
-  language: "eng"
-  dpi: 300
-
-pdf:
-  flatten_after_fill: true              # Lock fields after filling
-  create_backup: true                   # Keep original unfilled copy
-  compress: true
+```json
+{
+  "Given Name Text Box": "David",
+  "Family Name Text Box": "Knestrick",
+  "Address 1 Text Box": "8 Linden St",
+  "City Text Box": "Norwalk",
+  "Driving License Check Box": true,
+  "Gender List Box": "Man"
+}
 ```
 
----
-
-## Supported PDF Types
-
-| Type | Method | Accuracy |
-|------|--------|----------|
-| **Interactive forms** (AcroForms) | Direct field fill | 99% |
-| **XFA forms** | XFA parser + fill | 95% |
-| **Scanned paper** | OCR + field detection | 85% |
-| **Flat PDF** (no fields) | AI field detection | 80% |
-| **Government forms** (IRS, SSA) | Template library | 99% |
-
-### Template Library
-
-Common forms get pre-mapped templates for 99% accuracy:
-
-- IRS 1040, W-2, W-4, W-9, 1099 series
-- SSA applications
-- State DMV forms
-- Common medical intake forms
-- Insurance claim forms (major providers)
-- Lease/rental agreements (standard)
-
-Community-contributed templates welcome.
+Booleans drive checkboxes (the writer discovers each checkbox's real "on" state —
+`/Yes`, `/On`, `/1`, …); everything else is written as text.
 
 ---
 
-## Implementation Roadmap
+## What's in the box
 
-### Phase 1: Core Engine
+| Piece | Module | What it does |
+|---|---|---|
+| **Extractor** | `skpdf.extractor` | Reads AcroForm fields via `pypdf` — name, type (text/checkbox/radio/dropdown/signature), value, dropdown options, required flag |
+| **Filler** | `skpdf.filler` | Fuzzy-matches profile keys to field names, writes values, resolves real checkbox on-states, writes the output PDF |
+| **GTD filer** | `skpdf.gtd_filer` | Auto-categorizes (keyword scan over filename + fields), generates `YYYY-MM-DD_desc_source.pdf` names, builds the GTD folder path, flags sensitive fields, emits a YAML metadata sidecar |
+| **Storage** | `skpdf.storage` | `StorageBackend` ABC + `local` / `nextcloud` (WebDAV) / `gdrive` / `dropbox` adapters, plus a `get_backend()` factory |
+| **SKSeal bridge** | `skpdf.skseal_bridge` | Optional `sign_and_file` / `fill_sign_and_file` — PGP-sign the filled PDF via `skseal` (private key used in memory only), then file it |
+| **Models** | `skpdf.models` | Pydantic models: `PDFField`, `ExtractionResult`, `FillResult`, `PDFMetadata`, `FilingResult`, and the `FieldType` / `GTDStatus` / `Category` enums |
+| **CLI** | `skpdf.cli` | `click` commands: `extract`, `fill`, `file` (with `rich` tables) |
+| **JS shim** | `index.js`, `bin/cli.js` | Thin `@smilintux/skpdf` Node wrapper that shells out to the Python `skpdf` CLI |
 
-- [ ] PDF field extraction (AcroForms)
-- [ ] CapAuth profile integration
-- [ ] Auto-fill engine with field mapping
-- [ ] Question engine for missing fields
-- [ ] PDF writing (fill + flatten)
-- [ ] CLI interface
+### GTD filing, concretely
 
-### Phase 2: Filing + GTD
+A filed PDF (default status `reference`) lands as:
 
-- [ ] GTD folder structure setup
-- [ ] Auto-categorization
-- [ ] Metadata sidecar generation
-- [ ] Nextcloud WebDAV filing
-- [ ] Date-prefix naming convention
-- [ ] @Action tracking with reminders
+```
+<root>/@Reference/<Category>/<YYYY>/<YYYY-MM-DD>_<description>_<source>.pdf
+<root>/@Reference/<Category>/<YYYY>/<YYYY-MM-DD>_<description>_<source>.meta.yml
+```
 
-### Phase 3: SKChat Plugin
-
-- [ ] SKChat plugin interface
-- [ ] Conversational form filling
-- [ ] In-chat PDF preview
-- [ ] One-tap filing from chat
-
-### Phase 4: Advanced
-
-- [ ] OCR for scanned PDFs
-- [ ] XFA form support
-- [ ] Template library (IRS, SSA, etc.)
-- [ ] Google Drive / Dropbox filing
-- [ ] Batch fill (multiple PDFs, same data)
-- [ ] Digital signature integration
-- [ ] PDF-to-structured-data export (JSON/YAML)
+`<root>` is the backend root (LocalBackend defaults to `~/Documents`). GTD status
+maps to the top folder — `@Inbox`, `@Action/Next-Actions`, `@Action/Waiting-For`,
+`@Reference`, `@Projects`, `@Archive`. Categories are auto-detected from keyword
+hits (medical / financial / legal / housing / vehicle / government / personal /
+uncategorized). The `.meta.yml` sidecar records category, source, status,
+fill stats, `sensitive_fields` (SSN / account / routing / DOB patterns), and tags.
 
 ---
 
-## License
+## Where it lives in SKStack v2
 
-**GPL-3.0-or-later** — Because your paperwork shouldn't cost extra.
+skpdf is a **Compute**-tier capability — a document-processing tool. It does not
+run a daemon or own infrastructure; it reads a profile, processes a PDF, and writes
+to storage. The platform pieces it actually touches are the ones below; everything
+else is optional and adapter-gated.
 
-Copyright (C) 2026 smilinTux Team + Lumina
+```mermaid
+flowchart TD
+    subgraph COMPUTE["Compute (skpdf lives here)"]
+      SKPDF["**skpdf**<br/>extract · fill · GTD-file"]
+      SKFILES["skfiles / skobject<br/>(filed-document storage targets)"]
+    end
+    subgraph CORE["Core (identity & signing)"]
+      CAPAUTH["capauth<br/>(profile source — exported to profile.json)"]
+      SKSEAL["skseal<br/>(optional PGP sign-and-file)"]
+    end
+    subgraph EXTERNAL["External storage adapters (optional)"]
+      NC["Nextcloud (WebDAV)"]
+      GD["Google Drive"]
+      DB["Dropbox"]
+      LOCAL["local filesystem<br/>(~/Documents, default)"]
+    end
+
+    CAPAUTH -.->|"profile.json (PII)"| SKPDF
+    SKPDF -->|"hash + sign (in-memory key)"| SKSEAL
+    SKSEAL -.->|"signed PDF"| SKPDF
+    SKPDF -->|"store(pdf) + store_metadata(yaml)"| LOCAL
+    SKPDF --> NC
+    SKPDF --> GD
+    SKPDF --> DB
+    SKPDF -.->|"GTD library backs onto"| SKFILES
+```
+
+- **capauth** — the long-term source of the PII profile. Today skpdf consumes a
+  plain `profile.json`; the intended flow is to export it from a CapAuth profile so
+  identity stays sovereign and the export is the only thing that leaves the vault.
+- **skseal** — optional. If installed, `skpdf.skseal_bridge.sign_and_file()` hashes
+  the filled PDF and signs it with your PGP key (key material lives in memory only;
+  only the signature is persisted), then files it.
+- **storage adapters** — `local` is built in; `nextcloud`/`gdrive`/`dropbox` are
+  real implementations behind extras (`pip install skpdf[nextcloud]`, `[gdrive]`,
+  `[dropbox]`). The local-filesystem GTD library is what `skfiles`/`skobject` would
+  back in a larger deployment.
+
+See **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** for the full data flow, the
+checkbox-state resolution, the GTD filing lifecycle, and the source map.
 
 ---
 
-## Links
+## Status
 
-- **GitHub**: [github.com/smilinTux/skpdf](https://github.com/smilinTux/skpdf)
-- **SKChat**: [github.com/smilinTux/skchat](https://github.com/smilinTux/skchat)
-- **CapAuth**: [github.com/smilinTux/capauth](https://github.com/smilinTux/capauth)
+Alpha (`0.2.0`). Implemented and tested today: AcroForm extract/fill, fuzzy key
+matching, checkbox on-state resolution, GTD categorization + naming + metadata,
+the storage backends, and the SKSeal sign-and-file bridge. **Not** implemented
+(despite older notes you may find): OCR, XFA forms, a template library, a SKChat
+plugin, and interactive question prompting — `fill` is non-interactive and simply
+reports which fields it could not match.
+
+## Install extras
+
+```bash
+pip install -e ".[dev]"        # pytest, black, ruff
+pip install -e ".[nextcloud]"  # requests (WebDAV)
+pip install -e ".[gdrive]"     # google-api-python-client
+pip install -e ".[dropbox]"    # dropbox SDK
+```
+
+Run the tests: `pytest` (suite covers extractor, filler, models, gtd_filer,
+storage, and the skseal bridge).
 
 ---
 
-*40 pages of paperwork in 30 seconds. Your AI handles the forms. You handle your life.* 🐧👑
+Part of the **[SKWorld](https://skworld.io)** sovereign ecosystem · 🐧 smilinTux ·
+GPL-3.0-or-later
