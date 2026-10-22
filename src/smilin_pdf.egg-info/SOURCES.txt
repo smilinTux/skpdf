@@ -7,6 +7,7 @@ src/skpdf/extractor.py
 src/skpdf/filler.py
 src/skpdf/gtd_filer.py
 src/skpdf/models.py
+src/skpdf/skseal_bridge.py
 src/skpdf/storage.py
 src/smilin_pdf.egg-info/PKG-INFO
 src/smilin_pdf.egg-info/SOURCES.txt
@@ -18,4 +19,5 @@ tests/test_extractor.py
 tests/test_filler.py
 tests/test_gtd_filer.py
 tests/test_models.py
+tests/test_skseal_bridge.py
 tests/test_storage.py
