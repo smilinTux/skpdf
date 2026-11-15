@@ -4,8 +4,7 @@ Pydantic models for SKPDF field extraction and filling.
 
 from datetime import datetime
 from enum import Enum
-from pathlib import Path
-from typing import Any, Optional
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -35,7 +34,7 @@ class PDFField(BaseModel):
 
     name: str
     field_type: FieldType = FieldType.TEXT
-    value: Optional[Any] = None
+    value: Any | None = None
     options: list[str] = Field(default_factory=list)
     page: int = 0
     required: bool = False
@@ -105,10 +104,10 @@ class PDFMetadata(BaseModel):
     original_filename: str
     filed_date: datetime = Field(default_factory=lambda: datetime.now())
     category: str
-    subcategory: Optional[str] = None
-    source: Optional[str] = None
+    subcategory: str | None = None
+    source: str | None = None
     status: str = GTDStatus.REFERENCE.value
-    follow_up_date: Optional[datetime] = None
+    follow_up_date: datetime | None = None
     fields_filled: int = 0
     fields_auto: int = 0
     fields_manual: int = 0

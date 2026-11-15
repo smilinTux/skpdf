@@ -5,10 +5,8 @@ Extracts AcroForm fields from PDF files and returns structured data.
 """
 
 from pathlib import Path
-from typing import Union
 
 from pypdf import PdfReader
-from pypdf.constants import AnnotationDictionaryAttributes as ADA
 
 from .models import ExtractionResult, FieldType, PDFField
 
@@ -53,7 +51,7 @@ def _extract_options(field: dict) -> list[str]:
     return result
 
 
-def extract_fields(pdf_path: Union[str, Path]) -> ExtractionResult:
+def extract_fields(pdf_path: str | Path) -> ExtractionResult:
     """Extract all form fields from a PDF file.
 
     Args:

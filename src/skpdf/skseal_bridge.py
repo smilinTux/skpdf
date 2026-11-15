@@ -41,7 +41,6 @@ from __future__ import annotations
 import logging
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
 
 from .gtd_filer import GTDFiler
 from .models import FilingResult, PDFField
@@ -74,15 +73,15 @@ def sign_and_file(
     signer_email: str,
     private_key_armor: str,
     passphrase: str,
-    filer: Optional[GTDFiler] = None,
-    category: Optional[str] = None,
+    filer: GTDFiler | None = None,
+    category: str | None = None,
     gtd_status: str = "reference",
-    source: Optional[str] = None,
-    subcategory: Optional[str] = None,
-    tags: Optional[list[str]] = None,
-    fields: Optional[list[PDFField]] = None,
-    fill_stats: Optional[dict] = None,
-    title: Optional[str] = None,
+    source: str | None = None,
+    subcategory: str | None = None,
+    tags: list[str] | None = None,
+    fields: list[PDFField] | None = None,
+    fill_stats: dict | None = None,
+    title: str | None = None,
 ) -> SignAndFileResult:
     """Sign a filled PDF with SKSeal and file it via GTD.
 
@@ -205,12 +204,12 @@ def fill_sign_and_file(
     signer_email: str,
     private_key_armor: str,
     passphrase: str,
-    output_path: Optional[Path] = None,
-    filer: Optional[GTDFiler] = None,
-    category: Optional[str] = None,
+    output_path: Path | None = None,
+    filer: GTDFiler | None = None,
+    category: str | None = None,
     gtd_status: str = "reference",
-    source: Optional[str] = None,
-    tags: Optional[list[str]] = None,
+    source: str | None = None,
+    tags: list[str] | None = None,
 ) -> SignAndFileResult:
     """Fill, sign, and file a PDF in one call.
 

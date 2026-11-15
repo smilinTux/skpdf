@@ -6,7 +6,7 @@ Fills AcroForm fields in PDF files from a JSON profile.
 
 import json
 from pathlib import Path
-from typing import Any, Union
+from typing import Any
 
 from pypdf import PdfReader, PdfWriter
 
@@ -92,9 +92,9 @@ def _get_checkbox_on_states(writer: PdfWriter) -> dict[str, str]:
 
 
 def fill_pdf(
-    pdf_path: Union[str, Path],
-    profile_path: Union[str, Path],
-    output_path: Union[str, Path, None] = None,
+    pdf_path: str | Path,
+    profile_path: str | Path,
+    output_path: str | Path | None = None,
 ) -> FillResult:
     """Fill a PDF form from a JSON profile.
 

@@ -134,9 +134,7 @@ class TestSensitiveFields:
 class TestGenerateFilename:
     def test_basic_filename(self, filer, tmp_path):
         pdf = tmp_path / "claim_form.pdf"
-        name = filer.generate_filename(
-            pdf, "medical", date=datetime(2026, 2, 27)
-        )
+        name = filer.generate_filename(pdf, "medical", date=datetime(2026, 2, 27))
         assert name == "2026-02-27_claim-form.pdf"
 
     def test_with_source(self, filer, tmp_path):
@@ -148,17 +146,13 @@ class TestGenerateFilename:
 
     def test_cleans_special_chars(self, filer, tmp_path):
         pdf = tmp_path / "My (Special) Form!.pdf"
-        name = filer.generate_filename(
-            pdf, "personal", date=datetime(2026, 1, 15)
-        )
+        name = filer.generate_filename(pdf, "personal", date=datetime(2026, 1, 15))
         assert name == "2026-01-15_my-special-form.pdf"
 
 
 class TestBuildDestPath:
     def test_reference_path(self, filer):
-        path = filer.build_dest_path(
-            "2026-02-27_claim.pdf", "medical", "reference"
-        )
+        path = filer.build_dest_path("2026-02-27_claim.pdf", "medical", "reference")
         year = datetime.now().strftime("%Y")
         assert path == f"@Reference/Medical/{year}/2026-02-27_claim.pdf"
 
