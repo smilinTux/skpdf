@@ -7,7 +7,6 @@ PDF form field extraction, auto-filling, and GTD filing.
 
 import json
 from pathlib import Path
-from typing import Optional
 
 import click
 from rich.console import Console
@@ -47,7 +46,7 @@ def cli():
     help="Output format",
 )
 @click.option("--output", "-o", type=click.Path(), help="Save output to file")
-def extract(pdf_file: str, fmt: str, output: Optional[str]):
+def extract(pdf_file: str, fmt: str, output: str | None):
     """Extract form fields from a PDF.
 
     Args:
@@ -63,7 +62,7 @@ def extract(pdf_file: str, fmt: str, output: Optional[str]):
         result = extract_fields(pdf_file)
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from None
 
     if result.total_fields == 0:
         console.print("[yellow]No form fields found in this PDF.[/yellow]")
@@ -127,11 +126,11 @@ def extract(pdf_file: str, fmt: str, output: Optional[str]):
 def fill(
     pdf_file: str,
     profile: str,
-    output: Optional[str],
+    output: str | None,
     file_to: tuple[str, ...],
-    category: Optional[str],
+    category: str | None,
     status: str,
-    source: Optional[str],
+    source: str | None,
 ):
     """Fill a PDF form from a JSON profile.
 
@@ -150,7 +149,7 @@ def fill(
         result = fill_pdf(pdf_file, profile, output)
     except Exception as e:
         console.print(f"[red]Error:[/red] {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from None
 
     console.print(f"[green]Filled PDF saved to {result.output_path}[/green]")
     console.print(
@@ -196,10 +195,10 @@ def fill(
 def file_cmd(
     pdf_file: str,
     backends: tuple[str, ...],
-    category: Optional[str],
+    category: str | None,
     status: str,
-    source: Optional[str],
-    subcategory: Optional[str],
+    source: str | None,
+    subcategory: str | None,
     tag: tuple[str, ...],
 ):
     """File a PDF to GTD-organized storage.
@@ -229,16 +228,16 @@ def file_cmd(
 def _file_pdf(
     pdf_path: str,
     backends: list[str],
-    category: Optional[str] = None,
+    category: str | None = None,
     gtd_status: str = "reference",
-    source: Optional[str] = None,
-    subcategory: Optional[str] = None,
-    fill_stats: Optional[dict] = None,
-    tags: Optional[list[str]] = None,
+    source: str | None = None,
+    subcategory: str | None = None,
+    fill_stats: dict | None = None,
+    tags: list[str] | None = None,
 ) -> None:
     """Internal helper for filing a PDF via GTDFiler."""
     from .gtd_filer import GTDFiler
-    from .storage import LocalBackend, get_backend
+    from .storage import LocalBackend
 
     path = Path(pdf_path)
 
@@ -281,7 +280,7 @@ def _file_pdf(
             tags=tags,
         )
 
-        console.print(f"\n[green]Filed successfully[/green]")
+        console.print("\n[green]Filed successfully[/green]")
         console.print(f"  Category: {result.category}")
         console.print(f"  GTD status: {result.gtd_status}")
         console.print(f"  Path: {result.path}")
@@ -291,7 +290,7 @@ def _file_pdf(
 
     except Exception as e:
         console.print(f"[red]Filing error:[/red] {e}")
-        raise SystemExit(1)
+        raise SystemExit(1) from None
 
 
 def main():

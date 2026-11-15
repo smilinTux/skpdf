@@ -7,6 +7,7 @@ Licensed under GPL-3.0-or-later.
 
 __version__ = "0.2.0"
 
+from .gtd_filer import GTDFiler
 from .models import (
     Category,
     ExtractionResult,
@@ -17,6 +18,7 @@ from .models import (
     PDFField,
     PDFMetadata,
 )
+from .skseal_bridge import SignAndFileResult, fill_sign_and_file, sign_and_file
 from .storage import (
     DropboxBackend,
     GoogleDriveBackend,
@@ -26,8 +28,6 @@ from .storage import (
     StorageError,
     get_backend,
 )
-from .gtd_filer import GTDFiler
-from .skseal_bridge import SignAndFileResult, fill_sign_and_file, sign_and_file
 
 __all__ = [
     "Category",

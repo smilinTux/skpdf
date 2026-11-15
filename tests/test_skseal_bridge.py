@@ -14,7 +14,6 @@ from skpdf.models import FilingResult, PDFField, FieldType
 from skpdf.skseal_bridge import SignAndFileResult, sign_and_file, fill_sign_and_file
 from skpdf.storage import LocalBackend
 
-
 # ---------------------------------------------------------------------------
 # Test fixtures
 # ---------------------------------------------------------------------------
@@ -111,6 +110,7 @@ class TestSignAndFile:
             category="medical",
         )
         import uuid
+
         uuid.UUID(result.document_id)  # raises if not a valid UUID
 
     def test_fingerprint_is_hex_string(self, signer_keys, sample_pdf, local_filer):
@@ -182,6 +182,7 @@ class TestSignAndFile:
         )
         meta_path = Path(result.filing.metadata_path)
         import yaml
+
         content = yaml.safe_load(meta_path.read_text())
         assert "signed" in content["tags"]
         assert "signer:chef" in content["tags"]
@@ -200,6 +201,7 @@ class TestSignAndFile:
         )
         meta_path = Path(result.filing.metadata_path)
         import yaml
+
         content = yaml.safe_load(meta_path.read_text())
         assert "claim" in content["tags"]
         assert "2026" in content["tags"]
@@ -280,6 +282,7 @@ class TestSignAndFile:
             source="Blue Cross",
         )
         import yaml
+
         content = yaml.safe_load(Path(result.filing.metadata_path).read_text())
         assert content["source"] == "Blue Cross"
 
@@ -296,6 +299,7 @@ class TestSignAndFile:
             fill_stats={"fields_filled": 8, "fields_auto": 7, "fields_manual": 1},
         )
         import yaml
+
         content = yaml.safe_load(Path(result.filing.metadata_path).read_text())
         assert content["fields_filled"] == 8
 
@@ -314,6 +318,7 @@ class TestSignAndFile:
         assert isinstance(result, SignAndFileResult)
         # Clean up
         import shutil
+
         try:
             shutil.rmtree(Path(result.filing.path).parent)
         except Exception:
@@ -398,6 +403,7 @@ class TestGoogleDriveBackend:
     @pytest.fixture
     def gdrive(self, tmp_path):
         from skpdf.storage import GoogleDriveBackend
+
         backend = GoogleDriveBackend(
             credentials_path=str(tmp_path / "fake_creds.json"),
             root_folder_id="root",
@@ -417,13 +423,17 @@ class TestGoogleDriveBackend:
 
         mock_file = {"id": "abc123"}
         mock_service = mock.MagicMock()
-        mock_service.files().list().execute.return_value = {"files": [{"id": "folder1"}]}
+        mock_service.files().list().execute.return_value = {
+            "files": [{"id": "folder1"}]
+        }
         mock_service.files().create().execute.return_value = mock_file
         gdrive._service = mock_service
 
         # Provide a stub for googleapiclient.http.MediaInMemoryUpload
         fake_http_mod = types.ModuleType("googleapiclient.http")
-        fake_http_mod.MediaInMemoryUpload = mock.MagicMock(return_value=mock.MagicMock())
+        fake_http_mod.MediaInMemoryUpload = mock.MagicMock(
+            return_value=mock.MagicMock()
+        )
         with mock.patch.dict(sys.modules, {"googleapiclient.http": fake_http_mod}):
             result = gdrive._write_metadata(
                 "category: medical\n",

@@ -11,7 +11,6 @@ import logging
 import shutil
 from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Optional
 
 logger = logging.getLogger("skpdf.storage")
 
@@ -32,7 +31,7 @@ class StorageBackend(ABC):
         self,
         source_path: Path,
         dest_path: str,
-        metadata_yaml: Optional[str] = None,
+        metadata_yaml: str | None = None,
     ) -> str:
         """Store a file to this backend.
 
@@ -95,7 +94,7 @@ class LocalBackend(StorageBackend):
         root: Root directory for filing (default: ~/Documents).
     """
 
-    def __init__(self, root: Optional[Path] = None):
+    def __init__(self, root: Path | None = None):
         self._root = root or Path.home() / "Documents"
 
     @property
@@ -110,7 +109,7 @@ class LocalBackend(StorageBackend):
         self,
         source_path: Path,
         dest_path: str,
-        metadata_yaml: Optional[str] = None,
+        metadata_yaml: str | None = None,
     ) -> str:
         full_dest = self._root / dest_path
         self.ensure_directory(str(full_dest.parent.relative_to(self._root)))
@@ -158,7 +157,7 @@ class NextcloudWebDAVBackend(StorageBackend):
         self,
         source_path: Path,
         dest_path: str,
-        metadata_yaml: Optional[str] = None,
+        metadata_yaml: str | None = None,
     ) -> str:
         import requests
 
@@ -264,7 +263,7 @@ class GoogleDriveBackend(StorageBackend):
         self,
         source_path: Path,
         dest_path: str,
-        metadata_yaml: Optional[str] = None,
+        metadata_yaml: str | None = None,
     ) -> str:
         from googleapiclient.http import MediaFileUpload
 
@@ -277,9 +276,11 @@ class GoogleDriveBackend(StorageBackend):
             "parents": [folder_id],
         }
 
-        result = service.files().create(
-            body=file_metadata, media_body=media, fields="id"
-        ).execute()
+        result = (
+            service.files()
+            .create(body=file_metadata, media_body=media, fields="id")
+            .execute()
+        )
 
         file_id = result["id"]
         logger.info("Filed %s -> gdrive:%s", source_path.name, file_id)
@@ -366,7 +367,9 @@ class GoogleDriveBackend(StorageBackend):
             "parents": [folder_id],
         }
         result = (
-            service.files().create(body=meta_body, media_body=media, fields="id").execute()
+            service.files()
+            .create(body=meta_body, media_body=media, fields="id")
+            .execute()
         )
         return f"gdrive:{result['id']}"
 
@@ -391,7 +394,7 @@ class DropboxBackend(StorageBackend):
         self,
         source_path: Path,
         dest_path: str,
-        metadata_yaml: Optional[str] = None,
+        metadata_yaml: str | None = None,
     ) -> str:
         import dropbox
 

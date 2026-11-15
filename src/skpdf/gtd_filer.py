@@ -27,13 +27,11 @@ import logging
 import re
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 import yaml
 
 from .models import (
     Category,
-    ExtractionResult,
     FilingResult,
     GTDStatus,
     PDFField,
@@ -46,41 +44,122 @@ logger = logging.getLogger("skpdf.gtd_filer")
 # Category keyword mappings for auto-categorization
 CATEGORY_KEYWORDS: dict[str, list[str]] = {
     Category.MEDICAL.value: [
-        "insurance", "doctor", "hospital", "pharmacy", "health",
-        "medical", "patient", "diagnosis", "prescription", "clinic",
-        "dental", "vision", "therapy", "copay", "deductible",
-        "blue cross", "aetna", "cigna", "united health", "kaiser",
+        "insurance",
+        "doctor",
+        "hospital",
+        "pharmacy",
+        "health",
+        "medical",
+        "patient",
+        "diagnosis",
+        "prescription",
+        "clinic",
+        "dental",
+        "vision",
+        "therapy",
+        "copay",
+        "deductible",
+        "blue cross",
+        "aetna",
+        "cigna",
+        "united health",
+        "kaiser",
     ],
     Category.FINANCIAL.value: [
-        "tax", "bank", "loan", "credit", "investment", "1099",
-        "w-2", "w2", "irs", "income", "deposit", "withdrawal",
-        "mortgage", "interest", "dividend", "portfolio", "401k",
-        "savings", "checking", "routing", "account number",
+        "tax",
+        "bank",
+        "loan",
+        "credit",
+        "investment",
+        "1099",
+        "w-2",
+        "w2",
+        "irs",
+        "income",
+        "deposit",
+        "withdrawal",
+        "mortgage",
+        "interest",
+        "dividend",
+        "portfolio",
+        "401k",
+        "savings",
+        "checking",
+        "routing",
+        "account number",
     ],
     Category.LEGAL.value: [
-        "contract", "agreement", "court", "attorney", "will",
-        "power of attorney", "notary", "affidavit", "deposition",
-        "settlement", "lawsuit", "arbitration", "legal",
+        "contract",
+        "agreement",
+        "court",
+        "attorney",
+        "will",
+        "power of attorney",
+        "notary",
+        "affidavit",
+        "deposition",
+        "settlement",
+        "lawsuit",
+        "arbitration",
+        "legal",
     ],
     Category.HOUSING.value: [
-        "lease", "rent", "mortgage", "utility", "hoa",
-        "landlord", "tenant", "property", "electric", "gas",
-        "water", "sewer", "maintenance", "inspection",
+        "lease",
+        "rent",
+        "mortgage",
+        "utility",
+        "hoa",
+        "landlord",
+        "tenant",
+        "property",
+        "electric",
+        "gas",
+        "water",
+        "sewer",
+        "maintenance",
+        "inspection",
     ],
     Category.VEHICLE.value: [
-        "dmv", "registration", "title", "vin", "odometer",
-        "vehicle", "auto", "car", "truck", "motorcycle",
-        "license plate", "emission", "smog",
+        "dmv",
+        "registration",
+        "title",
+        "vin",
+        "odometer",
+        "vehicle",
+        "auto",
+        "car",
+        "truck",
+        "motorcycle",
+        "license plate",
+        "emission",
+        "smog",
     ],
     Category.GOVERNMENT.value: [
-        "irs", "ssa", "passport", "visa", "license",
-        "social security", "citizenship", "immigration",
-        "permit", "census", "voter", "selective service",
+        "irs",
+        "ssa",
+        "passport",
+        "visa",
+        "license",
+        "social security",
+        "citizenship",
+        "immigration",
+        "permit",
+        "census",
+        "voter",
+        "selective service",
     ],
     Category.PERSONAL.value: [
-        "school", "employment", "certificate", "resume",
-        "transcript", "diploma", "birth", "marriage", "death",
-        "adoption", "membership",
+        "school",
+        "employment",
+        "certificate",
+        "resume",
+        "transcript",
+        "diploma",
+        "birth",
+        "marriage",
+        "death",
+        "adoption",
+        "membership",
     ],
 }
 
@@ -124,7 +203,7 @@ class GTDFiler:
 
     def __init__(
         self,
-        backends: Optional[list[StorageBackend]] = None,
+        backends: list[StorageBackend] | None = None,
         filed_by: str = "skpdf",
     ):
         self._backends = backends or [LocalBackend()]
@@ -137,7 +216,7 @@ class GTDFiler:
     def categorize(
         self,
         pdf_path: Path,
-        fields: Optional[list[PDFField]] = None,
+        fields: list[PDFField] | None = None,
     ) -> str:
         """Determine category based on filename and field content.
 
@@ -198,8 +277,8 @@ class GTDFiler:
         self,
         pdf_path: Path,
         category: str,
-        source: Optional[str] = None,
-        date: Optional[datetime] = None,
+        source: str | None = None,
+        date: datetime | None = None,
     ) -> str:
         """Generate a standardized GTD filename.
 
@@ -233,7 +312,7 @@ class GTDFiler:
         filename: str,
         category: str,
         gtd_status: str = GTDStatus.REFERENCE.value,
-        subcategory: Optional[str] = None,
+        subcategory: str | None = None,
     ) -> str:
         """Build the destination path within GTD folder structure.
 
@@ -252,7 +331,9 @@ class GTDFiler:
         if gtd_status == GTDStatus.REFERENCE.value:
             cat_title = category.title()
             if subcategory:
-                return f"{gtd_folder}/{cat_title}/{subcategory.title()}/{year}/{filename}"
+                return (
+                    f"{gtd_folder}/{cat_title}/{subcategory.title()}/{year}/{filename}"
+                )
             return f"{gtd_folder}/{cat_title}/{year}/{filename}"
         else:
             return f"{gtd_folder}/{filename}"
@@ -263,12 +344,12 @@ class GTDFiler:
         category: str,
         gtd_status: str,
         dest_paths: list[str],
-        fields: Optional[list[PDFField]] = None,
-        fill_stats: Optional[dict] = None,
-        source: Optional[str] = None,
-        subcategory: Optional[str] = None,
-        follow_up_date: Optional[datetime] = None,
-        tags: Optional[list[str]] = None,
+        fields: list[PDFField] | None = None,
+        fill_stats: dict | None = None,
+        source: str | None = None,
+        subcategory: str | None = None,
+        follow_up_date: datetime | None = None,
+        tags: list[str] | None = None,
     ) -> PDFMetadata:
         """Generate metadata for a filed PDF.
 
@@ -329,14 +410,14 @@ class GTDFiler:
     def file(
         self,
         pdf_path: Path,
-        category: Optional[str] = None,
+        category: str | None = None,
         gtd_status: str = GTDStatus.REFERENCE.value,
-        source: Optional[str] = None,
-        subcategory: Optional[str] = None,
-        fields: Optional[list[PDFField]] = None,
-        fill_stats: Optional[dict] = None,
-        follow_up_date: Optional[datetime] = None,
-        tags: Optional[list[str]] = None,
+        source: str | None = None,
+        subcategory: str | None = None,
+        fields: list[PDFField] | None = None,
+        fill_stats: dict | None = None,
+        follow_up_date: datetime | None = None,
+        tags: list[str] | None = None,
     ) -> FilingResult:
         """File a PDF to all configured storage backends.
 
@@ -385,12 +466,11 @@ class GTDFiler:
                 if not primary_path:
                     primary_path = uri
             except Exception as exc:
-                logger.error(
-                    "Failed to store to %s: %s", backend.name, exc
-                )
+                logger.error("Failed to store to %s: %s", backend.name, exc)
 
         if not dest_uris:
             from .storage import StorageError
+
             raise StorageError("All storage backends failed")
 
         # Generate and store metadata
