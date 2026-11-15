@@ -18,6 +18,10 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
       - run: pip install -e ".[dev]"
+      # skseal is not on PyPI yet, and tests/test_skseal_bridge.py drives
+      # skpdf.skseal_bridge through the real SealEngine. A direct URL cannot go
+      # in pyproject (PyPI rejects it), so CI installs it from its repo.
+      - run: pip install "skseal @ git+https://github.com/smilinTux/skseal.git@main"
       - run: python -m pytest tests/ -v --tb=short
       - run: pip install black ruff && black --check src/ tests/ && ruff check src/
         if: matrix.python-version == '3.12'
